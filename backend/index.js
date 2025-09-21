@@ -43,3 +43,16 @@ app.get('/', (request, response) => {
     response.send('Server is running successfully');
 });
 
+app.get('/api/contacts', (request, response) => {
+    const sql = "SELECT * FROM contacts ORDER BY name ASC";  
+    db.all(sql, (err, rows) => {
+        if (err) {
+            response.status(400).json({"error": err.message});
+            return;
+        }
+        response.json({
+            "message": "success",
+            "data": rows
+        });
+    });
+});
