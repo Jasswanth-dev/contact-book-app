@@ -2,8 +2,16 @@ import React, { useEffect, useState } from 'react';
 import API from './api';
 import './App.css';
 
+const apiConstantInitialStatus = {
+    initial: "initial",
+    success: "success",
+    inprogress: 'inprogress',
+    failure: 'failure'
+}
+
 const App = () => {
   const [contacts, setContacts] = useState([]);
+  const [apiStatus, setApiStatus] = useState(apiConstantInitialStatus.initial)
   const [contact, setContact] = useState({
     name: "",
     email: "",
@@ -11,10 +19,15 @@ const App = () => {
   });
 
   const getContacts = () => {
-    API.get("/contacts")
-    .then(response => setContacts(response.data.data))
+    setApiStatus(apiConstantInitialStatus.inprogress);
+    API.get("/api/contacts")
+    .then(response => {
+      setContacts(response.data.data);
+      setApiStatus(apiConstantInitialStatus.success)
+    })
     .catch(error => {
       console.log(error);
+      setApiStatus(apiConstantInitialStatus.failure)
       alert("Unable to Fetch Contacts")
     });
   }
@@ -37,7 +50,7 @@ const App = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    API.post("/contacts", contact)
+    API.post("/api/contacts", contact)
     .then(() => {
       setContact({
         name: "",
@@ -52,7 +65,7 @@ const App = () => {
   }
 
   const handleDelete = (id) => {
-    API.delete(`/contacts/${id}`)
+    API.delete(`/api/contacts/${id}`)
     .then(response => {
       alert(response.data.message);
       getContacts();
@@ -86,22 +99,22 @@ const App = () => {
         <br/>
         <button type="submit">Submit</button>
       </form>
-      {contacts.length === 0 ? <p>No Contacts Available</p> : (
-        <ul>
-          {
-            contacts.map(each => (
-              <li key={each.id}>
-                <div>
-                  Name: {each.name}<br/>
-                  Email: {each.email}<br/>
-                  Phone Number: {each.phone}
-                </div>
-                <button type='button' onClick={() => handleDelete(each.id)}>Delete</button>
-              </li>
-            ))
-          }
-        </ul>
-      )}
+        {apiStatus === apiConstantInitialStatus.success && 
+          <ul>
+            {
+              contacts.map(each => (
+                <li key={each.id}>
+                  <div>
+                    Name: {each.name}<br/>
+                    Email: {each.email}<br/>
+                    Phone Number: {each.phone}
+                  </div>
+                  <button type='button' onClick={() => handleDelete(each.id)}>Delete</button>
+                </li>
+              ))
+            }
+          </ul>
+        }
     </div>
   );
 }

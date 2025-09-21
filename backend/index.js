@@ -1,6 +1,6 @@
 const express = require('express');
-const {path} = require('path');
 const sqlite3 = require('sqlite3').verbose();
+const path = require("path");
 const cross = require('cors');
 
 const app = express();
@@ -35,14 +35,6 @@ const db = new sqlite3.Database(dbSource, (err) => {
     }
 });
 
-app.listen(PORT, () => {
-    console.log(`Server is running on port:${PORT}`);
-});
-
-app.get('/', (request, response) => {
-    response.send('Server is running successfully');
-});
-
 app.get('/api/contacts', (request, response) => {
     const sql = "SELECT * FROM contacts ORDER BY name ASC";  
     db.all(sql, (err, rows) => {
@@ -60,7 +52,7 @@ app.get('/api/contacts', (request, response) => {
 app.post('/api/contacts', (request, response) => {
     const {name, email, phone} = request.body;
 
-    if (!name || !email || (!phone && phone.length === 10)) {
+    if (!name || !email || !phone) {
         response.status(400).json({"error_message": "Please provide valid Details"});
         return;
     };
@@ -101,4 +93,15 @@ app.delete('/api/contacts/:id', (request, response) => {
         }
         response.json({"message":"Contact deleted"});
     });
+});
+
+
+app.use(express.static(path.join(__dirname, "../frontend/build")));
+
+app.get(/.*/, (req, res) => {
+  res.sendFile(path.join(__dirname, "../frontend/build", "index.html"));
+});
+
+app.listen(PORT, () => {
+    console.log(`Server is running on port:${PORT}`);
 });
