@@ -36,7 +36,7 @@ const db = new sqlite3.Database(dbSource, (err) => {
 });
 
 app.listen(PORT, () => {
-    console.log(`Server is running on http://localhost:${PORT}`);
+    console.log(`Server is running on port:${PORT}`);
 });
 
 app.get('/', (request, response) => {
@@ -61,21 +61,33 @@ app.post('/api/contacts', (request, response) => {
     const {name, email, phone} = request.body;
 
     if (!name || !email || phone.length < 10) {
-        response.status(400).json({"error": "Please provide name, email and phone"});
+        response.status(400).json({"error": "Please provide valid Details"});
         return;
     };
 
-    const sql = 'INSERT INTO contacts (name, email, phone) VALUES (?,?,?)'; 
-    const params = [name, email, phone];
-    db.run(sql, params, (err) => {
+    const checkData = 'SELECT * FROM contacts WHERE email = ? OR phone = ?';
+    db.get(checkData, [email, phone], (err, row) => {
         if (err) {
             response.status(400).json({"error": err.message});
             return;
         }
-        response.json({
-            "message": "success",
-            "data": {id: this.lastID, name, email, phone}
-        });
+        if (row) {
+            response.status(400).json({"error": `Details already exists as ${row.name}`});
+            return;
+        }else{
+            const sql = 'INSERT INTO contacts (name, email, phone) VALUES (?,?,?)'; 
+            const params = [name, email, phone];
+            db.run(sql, params, (err) => {
+                if (err) {
+                    response.status(400).json({"error": err.message});
+                    return;
+                }
+                response.json({
+                    "message": "success",
+                    "data": {id: this.lastID, name, email, phone}
+                });
+            });
+        }
     });
 });
 
@@ -87,6 +99,6 @@ app.delete('/api/contacts/:id', (request, response) => {
             response.status(400).json({"error": err.message});
             return;
         }
-        response.json({"message":"deleted", rows: this.changes});
+        response.json({"message":"Contact deleted"});
     });
 });
