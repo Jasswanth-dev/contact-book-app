@@ -56,3 +56,37 @@ app.get('/api/contacts', (request, response) => {
         });
     });
 });
+
+app.post('/api/contacts', (request, response) => {
+    const {name, email, phone} = request.body;
+
+    if (!name || !email || phone.length < 10) {
+        response.status(400).json({"error": "Please provide name, email and phone"});
+        return;
+    };
+
+    const sql = 'INSERT INTO contacts (name, email, phone) VALUES (?,?,?)'; 
+    const params = [name, email, phone];
+    db.run(sql, params, (err) => {
+        if (err) {
+            response.status(400).json({"error": err.message});
+            return;
+        }
+        response.json({
+            "message": "success",
+            "data": {id: this.lastID, name, email, phone}
+        });
+    });
+});
+
+app.delete('/api/contacts/:id', (request, response) => {    
+    const {id} = request.params;
+    const sql = 'DELETE FROM contacts WHERE id = ?';
+    db.run(sql, id, function(err) {
+        if (err) {
+            response.status(400).json({"error": err.message});
+            return;
+        }
+        response.json({"message":"deleted", rows: this.changes});
+    });
+});
