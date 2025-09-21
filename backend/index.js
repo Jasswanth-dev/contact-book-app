@@ -60,8 +60,8 @@ app.get('/api/contacts', (request, response) => {
 app.post('/api/contacts', (request, response) => {
     const {name, email, phone} = request.body;
 
-    if (!name || !email || phone.length < 10) {
-        response.status(400).json({"error": "Please provide valid Details"});
+    if (!name || !email || (!phone && phone.length === 10)) {
+        response.status(400).json({"error_message": "Please provide valid Details"});
         return;
     };
 
@@ -72,7 +72,7 @@ app.post('/api/contacts', (request, response) => {
             return;
         }
         if (row) {
-            response.status(400).json({"error": `Details already exists as ${row.name}`});
+            response.status(400).json({"error_message": `Email or Phone Alredy Exists`});
             return;
         }else{
             const sql = 'INSERT INTO contacts (name, email, phone) VALUES (?,?,?)'; 
